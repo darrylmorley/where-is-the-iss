@@ -6,24 +6,45 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
   crossorigin=""/>
- <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
- integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
- crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+  integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+  crossorigin=""></script>
+  <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
   <title>Where is the ISS?</title>
 </head>
-<body>
+<body class="bg-gray-900">
+  <div class="mt-4 flex justify-center w-full"> 
+    <h1 class="flex text-2xl text-white font-bold uppercase">Where is the ISS?</h1>
+  </div>
 
-  <h1>Where is the ISS?</h1>
+  <div class="mt-8 flex justify-center">
+    <div class="rounded-lg" id="map" style="height: 460px; width: 80%;"></div>
+  </div>
 
-  <p>Latitude: <span id="lat"></span>°</p>
-  <p>Longitude: <span id=lon></span>°</p>
-
-  <div id="map" style="height: 460px; width: 80%;"></div>
+  <div class="mt-8 flex justify-center">
+    <div class="text-white">
+      <button onclick="infoShow()" class="px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded">More Info</button>
+    </div>
+  </div>
+  <div class="px-24">
+    <div id="info" class="hidden mt-4 text-white">
+      <div>
+        <h3 class="font-bold mb-2">Coordinates:</h3>
+        <p>Latitude: <span id="lat"></span>°</p>
+        <p>Longitude: <span id=lon></span>°</p>
+      </div>
+      <div>
+        <h3 class="font-bold mt-4 mb-2">Current Crew:</h3>
+        <ol id="astronauts"></ol>
+      </div>
+    </div>
+  </div>
 
   <script>
     // Get Coordinates of the ISS
     const issUrl = 'https://api.wheretheiss.at/v1/satellites/25544'
     const astroUrl = 'http://api.open-notify.org/astros.json'
+    const mapBox = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
 
     async function getISS() {
       const res = await fetch(issUrl)
@@ -36,13 +57,17 @@
     }
 
     async function getAstros() {
-      const astro = []
+      let astroNames = []
       const res = await fetch(astroUrl)
       const data = await res.json()
-      for (let i=0; i < data.length; i++) {
-        astro.push(data[i].people.name)
-      }
-      console.log(astro)
+      const astronauts = data.people
+      for (let i = 0; i < astronauts.length; i++) {
+        let ol = document.getElementById('astronauts')
+        let li = document.createElement('li')
+        let name = document.createTextNode(JSON.stringify(astronauts[i].name).replace(/"/g, ""))
+        li.appendChild(name)
+        ol.appendChild(li)
+      }     
     }
     getAstros()
 
@@ -66,7 +91,11 @@
     // Add the marker to the map
     const marker = L.marker([0, 0], {icon: issIcon}).addTo(mymap)
 
-    
+    const displayInfo = document.getElementById('info')
+
+    const infoShow = (e) => {
+      displayInfo.classList.toggle('hidden')
+    }
   </script>
 </body>
 </html>
